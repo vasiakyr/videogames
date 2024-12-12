@@ -8,7 +8,7 @@ public class PlatformerPlayer : MonoBehaviour
     private Rigidbody2D body;
     private Animator anim; //για την επεξεργασία του animator
     private BoxCollider2D box;
-    public float jumpForce = 12.0f;
+    public float jumpForce = 12.0f; //για να πηδάει ο παίκτης 
 
     void Start() 
     {
@@ -18,7 +18,7 @@ public class PlatformerPlayer : MonoBehaviour
     }
 
     void Update()
-        // κωδικασ γαι κίνηση
+        // κωδικασ για κίνηση
     {
         float deltaX = Input.GetAxis("Horizontal") * speed;
         //2 επειδή ειμαστε 2d
@@ -42,6 +42,7 @@ public class PlatformerPlayer : MonoBehaviour
 
         if (grounded && Input.GetKeyDown(KeyCode.Space))
         {
+            // προσθέτει δύναμη στο object μου (δε το έχει το character controller για αυτο υλοποιώ με διαφορετικό τρόπο το jump)
             body.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
 

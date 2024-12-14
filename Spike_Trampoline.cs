@@ -1,3 +1,5 @@
+// τα sprikes του δινουν δυο ευκαιριες και μετα πεθαινει ο παικτης 
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

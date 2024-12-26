@@ -1,5 +1,3 @@
-// ερωτημα 2 αυτο με το μήνυμα 
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;

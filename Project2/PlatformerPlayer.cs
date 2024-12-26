@@ -6,11 +6,15 @@ public class PlatformerPlayer : MonoBehaviour
 {
     public float speed = 4.5f;
     private Rigidbody2D body;
-    private Animator anim; //για την επεξεργασία του animator
+    private Animator anim;
     private BoxCollider2D box;
-    public float jumpForce = 12.0f; //για να πηδάει ο παίκτης 
+    public float jumpForce = 12.0f;
+    public float trampolineJumpForce = 20.0f;
+    private int health = 3; // Ζωές του παίκτη
 
-    void Start() 
+    private Collider2D currentPlatform;
+
+    void Start()
     {
         body = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
@@ -18,68 +22,84 @@ public class PlatformerPlayer : MonoBehaviour
     }
 
     void Update()
-        // κωδικασ για κίνηση
     {
         float deltaX = Input.GetAxis("Horizontal") * speed;
-        //2 επειδή ειμαστε 2d
         Vector2 movement = new Vector2(deltaX, body.linearVelocity.y);
-        body.linearVelocity = movement; // αφου 2d
+        body.linearVelocity = movement;
 
         Vector3 max = box.bounds.max;
         Vector3 min = box.bounds.min;
-        Vector2 corner1 = new Vector2(max.x - .01f, (min.y - .1f));
-        Vector2 corner2 = new Vector2(min.x - .01f, (min.y - .2f));
+        Vector2 corner1 = new Vector2(max.x - .1f, min.y - .1f);
+        Vector2 corner2 = new Vector2(min.x + .1f, min.y - .2f);
         Collider2D hit = Physics2D.OverlapArea(corner1, corner2);
 
-        bool grounded = false;
-
-        if (hit != null)
+        bool grounded = hit != null;
+        if (grounded && hit.CompareTag("Platform"))
         {
-            grounded = true;
+            currentPlatform = hit;
         }
 
         body.gravityScale = (grounded && Mathf.Approximately(deltaX, 0)) ? 0 : 1;
 
         if (grounded && Input.GetKeyDown(KeyCode.Space))
         {
-            // προσθέτει δύναμη στο object μου (δε το έχει το character controller για αυτο υλοποιώ με διαφορετικό τρόπο το jump)
             body.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
 
-        MovingPlatform platform = null;
-
-        if (hit != null)
+        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
-            platform = hit.GetComponent<MovingPlatform>();
+            if (currentPlatform != null)
+            {
+                StartCoroutine(DisableCollisionTemporarily());
+            }
         }
 
-        if (platform != null)
-        {
-            transform.parent = platform.transform;
-        }
+        anim.SetFloat("speed", Mathf.Abs(deltaX));
+    }
 
-        else
+    IEnumerator DisableCollisionTemporarily()
+    {
+        if (currentPlatform != null)
         {
-            transform.parent = null;
-        }
-
-        anim.SetFloat("speed", Mathf.Abs(deltaX)); //ορίζουμε τη παράμετρο setFloat, εδώ speed
-
-        Vector3 pScale = Vector3.one;
-        if (platform != null)
-        {
-            pScale = platform.transform.localScale;
-        }
-        // deltax δίνει το speed, σε απότυλη τιμή γιατι αν κινούμαι αριστερά θα είναι αρνητική η τιμή
-        // το speed το θέλω πάντα θετικό
-
-        //μέθοδος που δίνει τη σύγκριση του deltax με το 0, όταν ειναι κοντά στο 0 δίνει 0 
-        if (!Mathf.Approximately(deltaX, 0))  
-        {
-            // όταν κινείται ο παίκτης γίνεται αυτό , η sign δίνει το πρόσημο
-            transform.localScale = new Vector3(Mathf.Sign(deltaX) / pScale.x, 1 / pScale.y, 1);
+            Physics2D.IgnoreCollision(box, currentPlatform, true);
+            body.linearVelocity = new Vector2(body.linearVelocity.x, -2.0f);
+            yield return new WaitForSeconds(0.5f);
+            Physics2D.IgnoreCollision(box, currentPlatform, false);
         }
     }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Spike"))
+        {
+            Debug.Log("Player hit a spike!");
+            TakeDamage();
+        }
+        else if (collision.CompareTag("DeathZone"))
+        {
+            Debug.Log("Player fell into a pit!");
+            Die();
+        }
+        else if (collision.CompareTag("Trampoline"))
+        {
+            Debug.Log("Player stepped on trampoline");
+            body.linearVelocity = new Vector2(body.linearVelocity.x, trampolineJumpForce);
+        }
+    }
+
+    void TakeDamage()
+    {
+        health--;
+        Debug.Log("Player health: " + health);
+        if (health <= 0)
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        Debug.Log("Player has died!");
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
 }
-
-

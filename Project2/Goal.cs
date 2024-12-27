@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; // Για την εμφάνιση μηνύματος
+using UnityEngine.UI; // Για μηνυμα
 
 public class Goal : MonoBehaviour
 {
     public string victoryMessage = "Συγχαρητήρια! Κέρδισες!";
-    public Text victoryText; // Αναφορά στο UI στοιχείο που θα εμφανίζει το μήνυμα
+    public Text victoryText; //  εμφανίζει το μήνυμα
 
     private bool gameWon = false;
 
@@ -14,7 +14,7 @@ public class Goal : MonoBehaviour
     {
         if (victoryText != null)
         {
-            victoryText.gameObject.SetActive(false); // Αρχικά κρύβουμε το μήνυμα
+            victoryText.gameObject.SetActive(false); // αρχικά  το μήνυμα δε φαινεται
         }
     }
 
@@ -31,7 +31,7 @@ public class Goal : MonoBehaviour
                 victoryText.gameObject.SetActive(true); // Εμφάνιση του μηνύματος
             }
 
-            // Εάν θέλουμε να παγώσουμε το παιχνίδι
+            // για να παγωσει- σταματησει το παιχνιδι
             Time.timeScale = 0; 
         }
     }

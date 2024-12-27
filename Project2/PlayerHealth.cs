@@ -17,7 +17,7 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth -= damage; // μειωση ζωής
 
-        Debug.Log("Ο παίκτης χτυπήθηκε! Υπόλοιπο ζωής: " + currentHealth);
+        Debug.Log("The player has been hit! Current life: " + currentHealth);
 
         if (currentHealth <= 0)
         {
@@ -27,7 +27,7 @@ public class PlayerHealth : MonoBehaviour
     //όταν πεθαινει και πρεπει να αρχίσει από την αρχη 
     void Die()
     {
-        Debug.Log("Ο παίκτης έχασε!");
+        Debug.Log("Your player died!");
        
     }
 }

@@ -1,7 +1,3 @@
-//γινεται restart του παιχνιδιού όταν ο παίκτης πέσει πάνω στον enemy1
-//αυτό γίνετια χάρης τον SceneManager
-
-
 using UnityEngine;
 using UnityEngine.SceneManagement; // Για να χρησιμοποιήσουμε το SceneManager
 
@@ -71,6 +67,9 @@ public class EnemyMovement : MonoBehaviour
             // Εμφάνιση μηνύματος στην κονσόλα
             Debug.Log("Ο Παίκτης έχασε! Συγκρούστηκε με τον Εχθρό.");
             
+            // Μηδενίζουμε τις αποτυχίες του παίκτη στο PlayerPrefs
+            PlayerPrefs.SetInt("FailCount", 0);  // Επαναφορά των αποτυχιών στο 0
+
             // Επανεκκίνηση του παιχνιδιού (φόρτωση της τρέχουσας σκηνής)
             RestartGame();
         }

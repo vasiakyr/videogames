@@ -5,7 +5,7 @@ using UnityEngine.UI; // Για μηνυμα
 
 public class Goal : MonoBehaviour
 {
-    public string victoryMessage = "Συγχαρητήρια! Κέρδισες!";
+    public string victoryMessage = "Congratulations! You won!";
     public Text victoryText; //  εμφανίζει το μήνυμα
 
     private bool gameWon = false;

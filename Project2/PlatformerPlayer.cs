@@ -14,17 +14,23 @@ public class PlatformerPlayer : MonoBehaviour
 
     private Collider2D currentPlatform;
 
+    // Αποθήκευση της αρχικής θέσης του παίκτη
+    private Vector3 startingPosition;
+
     void Start()
     {
         body = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         box = GetComponent<BoxCollider2D>();
+
+        // Αποθήκευση της αρχικής θέσης του παίκτη
+        startingPosition = transform.position;
     }
 
     void Update()
     {
         float deltaX = Input.GetAxis("Horizontal") * speed;
-        Vector2 movement = new Vector2(deltaX, body.linearVelocity.y);
+        Vector2 movement = new Vector2(deltaX, body.linearVelocity.y); // Σωστή χρήση velocity
         body.linearVelocity = movement;
 
         Vector3 max = box.bounds.max;
@@ -100,6 +106,9 @@ public class PlatformerPlayer : MonoBehaviour
     void Die()
     {
         Debug.Log("Player has died!");
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+        
+        // Επαναφορά στην αρχική θέση για οταν χανει ο παικτης 
+        transform.position = startingPosition;
+        health = 3; 
     }
 }

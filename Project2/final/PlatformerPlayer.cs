@@ -9,7 +9,7 @@ public class PlatformerPlayer : MonoBehaviour
     private Animator anim;
     private BoxCollider2D box;
     public float jumpForce = 12.0f;
-    private int health = 3; // Ζωές του παίκτη
+    private int health = 3; // ζωές του παίκτη
     private Vector3 startingPosition;
 
     private Collider2D currentPlatform;
@@ -91,45 +91,42 @@ public class PlatformerPlayer : MonoBehaviour
     {
         Debug.Log("Player has died!");
 
-        // Αυξάνουμε τον αριθμό των αποτυχιών όταν ο παίκτης χάνει όλες τις ζωές του
+        // αυξάνουμε τον αριθμό των αποτυχιών όταν ο παίκτης χάνει όλες τις ζωές του
+        // ο αριθμός αυτός φαίνεται στην οθόνη του παιχνιδιού
         UIManager uiManager = FindObjectOfType<UIManager>();
         if (uiManager != null)
         {
             uiManager.IncreaseFailCount();
         }
 
-        // Επαναφορά στην αρχική θέση για όταν χάνει ο παίκτης
+        // restart όταν χάνει κ τις 3 ζωές και επαναφορά της ζωής του
         transform.position = startingPosition;
         health = 3;
     }
 
-    // Νέα μέθοδος για τον έλεγχο επαφής με το κουτί "Spike"
-    void OnTriggerEnter2D(Collider2D collision)
+    //έλεγχος επαφής με εμπόδια ή τραμπολίνο
+void OnTriggerEnter2D(Collider2D collision)
+{
+    if (collision.CompareTag("Spike"))
     {
-        if (collision.CompareTag("Spike"))
-        {
-            Debug.Log("Player hit a spike!");
-            TakeDamage(); // Χάνει ζωή όταν ακουμπάει το Spike
-        }
-        else if (collision.CompareTag("DeathZone"))
-        {
-            Debug.Log("Player fell into a pit!");
-            Die(); // Αν πέσει στην DeathZone, πεθαίνει
-        }
-        else if (collision.CompareTag("Trampoline"))
-        {
-            Debug.Log("Player stepped on trampoline");
-            body.linearVelocity = new Vector2(body.linearVelocity.x, trampolineJumpForce); // Άλμα με trampoline
-        }
+        TakeDamage(); // Χάνει ζωή όταν ακουμπάει το Spike
     }
+    else if (collision.CompareTag("DeathZone"))
+    {
+        TakeDamage(); 
+    }
+    else if (collision.CompareTag("Trampoline"))
+    {
+        Debug.Log("Player stepped on trampoline");
+        body.linearVelocity = new Vector2(body.linearVelocity.x, trampolineJumpForce); // Άλμα με trampoline
+    }
+}
 
-    // Νέα μέθοδος για να επαναφέρει τον παίκτη στις αρχικές του θέσεις και να καθαρίσει τις ζωές
     public void ResetHealth()
     {
         health = 3; // Επαναφορά των ζωών του παίκτη
     }
 
-    // Νέα μέθοδος για την αρχική θέση του παίκτη
     public Vector3 StartingPosition()
     {
         return startingPosition; // Επιστρέφει την αρχική θέση του παίκτη

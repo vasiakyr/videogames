@@ -1,14 +1,15 @@
+//κώδικας για τον canvas δηλαδή για το μενού που πετάγετε στην οθόνη όταν ο παίκτη πατήσει esc
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PauseMenuManager : MonoBehaviour
 {
-    public GameObject pauseMenuUI;  // Το UI του μενού παύσης
-    private bool isPaused = false;  // Ελέγχει αν το παιχνίδι είναι σε παύση
+    public GameObject pauseMenuUI;  
+    private bool isPaused = false;  // έλεγχος αν το παιχνίδι είναι σε παύση
 
     void Start()
     {
-        // Αρχικά απενεργοποιούμε το μενού
         pauseMenuUI.SetActive(false);
     }
 
@@ -18,25 +19,25 @@ public class PauseMenuManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.P))
         {
             if (isPaused)
-                ContinueGame();  // Αν το παιχνίδι είναι ήδη σε παύση, συνεχίζουμε
+                ContinueGame();  // Αν το παιχνίδι είναι ήδη σε παύση, συνεχίζουμε το παιχνίδι
             else
-                PauseGame();  // Αλλιώς το παύουμε
+                PauseGame();  // Αλλιώς μπαίνουμε στο μενού
         }
     }
 
     // Συνάρτηση για να παύσουμε το παιχνίδι
     public void PauseGame()
     {
-        pauseMenuUI.SetActive(true);  // Εμφάνιση του μενού παύσης
+        pauseMenuUI.SetActive(true);  // εμφάνιση του μενού παύσης
         Time.timeScale = 0f;  // Σταματάμε το χρόνο του παιχνιδιού (παύση)
-        isPaused = true;  // Το παιχνίδι είναι σε παύση
+        isPaused = true; 
     }
 
     // Συνάρτηση για να συνεχίσουμε το παιχνίδι
     public void ContinueGame()
     {
         pauseMenuUI.SetActive(false);  // Κρύβουμε το μενού παύσης
-        Time.timeScale = 1f;  // Επαναφέρουμε το χρόνο του παιχνιδιού (συνέχιση)
+        Time.timeScale = 1f; 
         isPaused = false;  // Το παιχνίδι δεν είναι πια σε παύση
     }
 

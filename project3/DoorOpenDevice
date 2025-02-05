@@ -1,0 +1,58 @@
+//ανοιγοκλείνει η ποστα 
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class DoorOpenDevice : MonoBehaviour
+{
+    [SerializeField] Vector3 dPos; // Η απόσταση που θα μετακινηθεί η πόρτα
+    private bool open; // Αν η πόρτα είναι ανοιχτή ή κλειστή
+    [SerializeField] private float openTime = 2f; // Χρόνος που η πόρτα θα παραμένει ανοιχτή
+    [SerializeField] private float closeTime = 2f; // Χρόνος που η πόρτα θα παραμένει κλειστή
+
+    private float timer; // Χρονομετρητής για την εναλλαγή κατάστασης
+
+    // Μέθοδος για να εναλλάσσεται η πόρτα (ανοίγει και κλείνει αυτόματα)
+    void Update()
+    {
+        // Αν η πόρτα είναι ανοιχτή, αυξάνουμε τον χρονομετρητή
+        if (open)
+        {
+            timer += Time.deltaTime; // Προσθέτουμε τον χρόνο που πέρασε
+            if (timer >= openTime)
+            {
+                Deactivate(); // Κλείνουμε την πόρτα μετά τον καθορισμένο χρόνο
+                timer = 0f; // Επαναφορά του χρονομετρητή
+            }
+        }
+        else
+        {
+            timer += Time.deltaTime; // Προσθέτουμε τον χρόνο που πέρασε
+            if (timer >= closeTime)
+            {
+                Activate(); // Ανοίγουμε την πόρτα μετά τον καθορισμένο χρόνο
+                timer = 0f; // Επαναφορά του χρονομετρητή
+            }
+        }
+    }
+
+    // Μέθοδος για να ανοίξει η πόρτα
+    public void Activate()
+    {
+        if (!open)
+        {
+            transform.position += dPos; // Μετακινούμε την πόρτα στην ανοιχτή θέση
+            open = true;
+        }
+    }
+
+    // Μέθοδος για να κλείσει η πόρτα
+    public void Deactivate()
+    {
+        if (open)
+        {
+            transform.position -= dPos; // Μετακινούμε την πόρτα στην κλειστή θέση
+            open = false;
+        }
+    }
+}

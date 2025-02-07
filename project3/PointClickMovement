@@ -1,0 +1,148 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+[RequireComponent(typeof(CharacterController))]
+public class PointClickMovement : MonoBehaviour
+{
+    [SerializeField] Transform target;
+
+    public float walkSpeed = 3.0f;
+    public float runSpeed = 10.0f;
+    public float rotSpeed = 15.0f;
+    public float gravity = -9.8f;
+    public float terminalVelocity = -20.0f;
+    public float minFall = -1.5f;
+    public float jumpSpeed = 15.0f; // Αυξημένη ταχύτητα άλματος
+
+    public float deceleration = 25.0f;
+    public float targetBuffer = 1.5f;
+
+    private float curSpeed = 0f;
+    private Vector3? targetPos;
+
+    private float vertSpeed;
+    private ControllerColliderHit contact;
+
+    private CharacterController charController;
+    private Animator animator;
+
+    public float pushForce = 3.0f;
+
+    // Use this for initialization
+    void Start()
+    {
+        vertSpeed = minFall;
+        charController = GetComponent<CharacterController>();
+        animator = GetComponent<Animator>();
+        animator.SetFloat("Speed", 0f);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        Vector3 movement = Vector3.zero;
+
+        // Αν γίνεται κλικ στο έδαφος για κίνηση
+        if (Input.GetMouseButton(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit mouseHit;
+
+            if (Physics.Raycast(ray, out mouseHit))
+            {
+                targetPos = mouseHit.point;
+                curSpeed = walkSpeed; // Κανονική ταχύτητα περπατήματος
+            }
+        }
+
+        // Αν πατηθεί το "Shift", τρέχει πιο γρήγορα
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            curSpeed = runSpeed; // Κανονική ταχύτητα τρεξίματος
+        }
+        // Αν πατηθεί το "Χ", τρέχει ακόμα πιο γρήγορα
+        else if (Input.GetKey(KeyCode.X))
+        {
+            curSpeed = runSpeed * 1.5f; // Αυξάνει την ταχύτητα κατά 50%
+        }
+        else if (targetPos == null)
+        {
+            curSpeed = 0f;
+        }
+
+        // Κίνηση προς τον στόχο
+        if (targetPos != null)
+        {
+            Vector3 adjustedPos = new Vector3(targetPos.Value.x, transform.position.y, targetPos.Value.z);
+            Quaternion targetRot = Quaternion.LookRotation(adjustedPos - transform.position);
+
+            if (Vector3.Distance(adjustedPos, transform.position) > targetBuffer)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotSpeed * Time.deltaTime);
+            }
+
+            movement = curSpeed * Vector3.forward;
+            movement = transform.TransformDirection(movement);
+
+            if (Vector3.Distance(targetPos.Value, transform.position) < targetBuffer)
+            {
+                curSpeed = 0f;
+                targetPos = null;
+            }
+        }
+
+        // Ενημέρωση του animator για την ταχύτητα
+        animator.SetFloat("Speed", Mathf.Clamp(curSpeed, 0, runSpeed * 1.5f));
+
+        // Έλεγχος αν ο παίκτης είναι στο έδαφος ή πέφτει
+        bool hitGround = false;
+        RaycastHit hit;
+        if (vertSpeed < 0 && Physics.Raycast(transform.position, Vector3.down, out hit))
+        {
+            float check = (charController.height + charController.radius) / 1.9f;
+            hitGround = hit.distance <= check;
+        }
+
+        // Άλμα
+        if (Input.GetKeyDown(KeyCode.Space) && hitGround)
+        {
+            vertSpeed = jumpSpeed;
+            animator.SetBool("Jumping", true);
+        }
+
+        // Αν βρίσκεται στο έδαφος
+        if (hitGround)
+        {
+            if (vertSpeed < 0)
+            {
+                vertSpeed = minFall;
+            }
+            animator.SetBool("Jumping", false);
+        }
+        else
+        {
+            vertSpeed += gravity * 5 * Time.deltaTime;
+            if (vertSpeed < terminalVelocity)
+            {
+                vertSpeed = terminalVelocity;
+            }
+        }
+
+        movement.y = vertSpeed;
+        movement *= Time.deltaTime;
+        charController.Move(movement);
+    }
+
+    // Αντιμετώπιση συγκρούσεων
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        contact = hit;
+        Rigidbody body = hit.collider.attachedRigidbody;
+        if (body != null && !body.isKinematic)
+        {
+            body.velocity = hit.moveDirection * pushForce;
+        }
+    }
+}

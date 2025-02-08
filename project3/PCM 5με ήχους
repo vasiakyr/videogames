@@ -1,0 +1,174 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+[RequireComponent(typeof(CharacterController))]
+public class PointClickMovement : MonoBehaviour
+{
+    [SerializeField] Transform target;
+    [SerializeField] private AudioClip dashSound;
+
+    public float walkSpeed = 3.0f;
+    public float runSpeed = 10.0f;
+    public float dashSpeed = 20.0f;
+    public float rotSpeed = 15.0f;
+    public float gravity = -9.8f;
+    public float terminalVelocity = -20.0f;
+    public float minFall = -1.5f;
+    public float jumpSpeed = 15.0f;
+
+    public float deceleration = 25.0f;
+    public float targetBuffer = 1.5f;
+
+    private float curSpeed = 0f;
+    private Vector3? targetPos;
+    private float vertSpeed;
+    private ControllerColliderHit contact;
+    private CharacterController charController;
+    private Animator animator;
+    private AudioSource audioSource;
+
+    public float pushForce = 3.0f;
+    private bool isDashing = false;
+    private float dashTime = 0.2f;
+    private float dashCooldown = 0f;
+
+    void Start()
+    {
+        vertSpeed = minFall;
+        charController = GetComponent<CharacterController>();
+        animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
+        animator.SetFloat("Speed", 0f);
+    }
+
+    void Update()
+    {
+        if (dashCooldown > 0)
+        {
+            dashCooldown -= Time.deltaTime;
+        }
+
+        Vector3 movement = Vector3.zero;
+
+        if (Input.GetMouseButton(0) && !EventSystem.current.IsPointerOverGameObject())
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit mouseHit;
+
+            if (Physics.Raycast(ray, out mouseHit))
+            {
+                targetPos = mouseHit.point;
+                curSpeed = walkSpeed;
+            }
+        }
+
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            curSpeed = runSpeed;
+        }
+        else if (Input.GetKey(KeyCode.X))
+        {
+            curSpeed = runSpeed * 1.5f;
+        }
+        else if (targetPos == null)
+        {
+            curSpeed = 0f;
+        }
+
+        if (targetPos != null)
+        {
+            Vector3 adjustedPos = new Vector3(targetPos.Value.x, transform.position.y, targetPos.Value.z);
+            Quaternion targetRot = Quaternion.LookRotation(adjustedPos - transform.position);
+
+            if (Vector3.Distance(adjustedPos, transform.position) > targetBuffer)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotSpeed * Time.deltaTime);
+            }
+
+            movement = curSpeed * Vector3.forward;
+            movement = transform.TransformDirection(movement);
+
+            if (Vector3.Distance(targetPos.Value, transform.position) < targetBuffer)
+            {
+                curSpeed = 0f;
+                targetPos = null;
+            }
+        }
+
+        animator.SetFloat("Speed", Mathf.Clamp(curSpeed, 0, runSpeed * 1.5f));
+
+        bool hitGround = false;
+        RaycastHit hit;
+        if (vertSpeed < 0 && Physics.Raycast(transform.position, Vector3.down, out hit))
+        {
+            float check = (charController.height + charController.radius) / 1.9f;
+            hitGround = hit.distance <= check;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space) && hitGround)
+        {
+            vertSpeed = jumpSpeed;
+            animator.SetBool("Jumping", true);
+        }
+
+        if (hitGround)
+        {
+            if (vertSpeed < 0)
+            {
+                vertSpeed = minFall;
+            }
+            animator.SetBool("Jumping", false);
+        }
+        else
+        {
+            vertSpeed += gravity * 5 * Time.deltaTime;
+            if (vertSpeed < terminalVelocity)
+            {
+                vertSpeed = terminalVelocity;
+            }
+        }
+
+        movement.y = vertSpeed;
+        movement *= Time.deltaTime;
+        charController.Move(movement);
+
+        if (Input.GetKeyDown(KeyCode.Q) && dashCooldown <= 0)
+        {
+            StartCoroutine(Dash());
+        }
+    }
+
+    private IEnumerator Dash()
+    {
+        isDashing = true;
+        dashCooldown = 1.0f;
+
+        if (dashSound != null)
+        {
+            audioSource.PlayOneShot(dashSound);
+        }
+
+        float startTime = Time.time;
+        Vector3 dashDirection = transform.forward;
+
+        while (Time.time < startTime + dashTime)
+        {
+            charController.Move(dashDirection * dashSpeed * Time.deltaTime);
+            yield return null;
+        }
+
+        isDashing = false;
+    }
+
+    void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        contact = hit;
+        Rigidbody body = hit.collider.attachedRigidbody;
+        if (body != null && !body.isKinematic)
+        {
+            body.velocity = hit.moveDirection * pushForce;
+        }
+    }
+}
